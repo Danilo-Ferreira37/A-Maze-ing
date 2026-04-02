@@ -31,7 +31,7 @@ def main(color: bool = False) -> None:
     display.display(False, color)
     write_solution(maze)
     show_hide = 2
-    path = True
+    path = False
     while (1):
         print("=== A-Maze-ing ===")
         print("1. Re-generate a new maze")
@@ -41,24 +41,25 @@ def main(color: bool = False) -> None:
         choice = input("Choice? (1-4): ")
         if choice not in ("1", "2", "3", "4"):
             os.system("clear")
-            display.display()
-            print("\nERROR: Enter a number between 1 and 4!\n")
+            display.display(path, color)
+            print("\nError: Enter a number between 1 and 4!\n")
+
         elif choice == "1":
             main(color)
         elif choice == "2":
             if show_hide % 2 != 0 and not color:
-                display.display(False, color)
                 path = False
+                display.display(path, color)
             elif show_hide % 2 != 0 and color:
                 path = False
-                display.display(False, color)
+                display.display(path, color)
             else:
                 if color:
                     path = True
-                    display.display(True, color)
+                    display.display(path, color)
                 else:
                     path = True
-                    display.display(True, color)
+                    display.display(path, color)
             show_hide += 1
         elif choice == "3":
             if not color:

@@ -70,8 +70,8 @@ class Display_Maze:
 
         if change_color:
             entry = f"{CIANE}E{RESET}"
-            exit = f"{GREEN}X{RESET}"
-            path = f"{PURPLE} {RESET}"
+            exit = f"\033[35mX{RESET}"
+            path = f"\033[42m {RESET}"
             cell_close = f"{ORANGE} {RESET}"
         line = ""
         for cell in row:
