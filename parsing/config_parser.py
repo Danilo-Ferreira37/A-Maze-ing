@@ -1,3 +1,21 @@
+from typing import cast, TYPE_CHECKING, Optional
+from types import FrameType
+import signal
+import sys
+
+
+if TYPE_CHECKING:
+    from mazegen.mazegen import MazeConfig
+
+
+def handle_signal(sig: int, frame: Optional[FrameType]) -> None:
+    if sig == signal.SIGINT:
+        print("\nCtrl+C detected — User kill the program.")
+        sys.exit(1)
+    frame = frame
+    if sig == signal.SIGTSTP:
+        print("\nCtrl+Z detected — No permission to exit of the program.")
+
 
 class ConfigParser:
     def __init__(self, config_file: str) -> None:
@@ -37,7 +55,10 @@ class ConfigParser:
                     config[key] = value
 
                 return config
-
+        except PermissionError:
+            print("Error: The file hasn't permission!")
+            print("For executes the program enter: chmod +r config.txt")
+            return None
         except FileNotFoundError:
             print("Configuration file not found.")
             return None
@@ -48,18 +69,19 @@ class ConfigParser:
     def validate_config(
         self,
         config: dict[str, str]
-    ) -> dict[str, int | tuple[int, int] | str | bool]:
+    ) -> "MazeConfig":
+
         validated: dict[str, int | tuple[int, int] | str | bool] = {}
 
         for key, value in config.items():
-            if key in ["WIDTH", "HEIGHT"]:
+            if key in ["WIDTH", "HEIGHT", "SEED"]:
                 if not value.isdigit() or int(value) <= 0:
                     raise ValueError(f"{key} must be a positive integer")
                 num: int = int(value)
                 if key == "WIDTH":
-                    if num > 45:
+                    if num > 42:
                         raise ValueError("WIDTH must be less "
-                                         "than or equal to 45")
+                                         "than or equal to 42")
                     if num < 9:
                         raise ValueError("WIDTH must be greater "
                                          "than or equal to 8")
@@ -67,9 +89,17 @@ class ConfigParser:
                     if num < 8:
                         raise ValueError("HEIGHT must be greater "
                                          "than or equal to 9")
-                    if num > 45:
+                    if num > 42:
                         raise ValueError("HEIGHT must be "
-                                         "less than or equal to 45")
+                                         "less than or equal to 42")
+                elif key == "SEED":
+                    try:
+                        if config["SEED"] is not None:
+                            int(config["SEED"])
+                        else:
+                            validated[key] = None
+                    except ValueError as e:
+                        print(f"{e}")
                 validated[key] = num
 
             elif key in ["ENTRY", "EXIT"]:
@@ -101,24 +131,24 @@ class ConfigParser:
             if key not in validated:
                 raise KeyError(f"Missing required key: {key}")
 
-        return validated
+        return cast("MazeConfig", validated)
 
-    def parser_entry_exit(self, config: dict) -> bool:
+    def parser_entry_exit(self, config: "MazeConfig") -> bool:
         entry = config["ENTRY"]
-        exit = config["EXIT"]
+        exit_ = config["EXIT"]
         width = config["WIDTH"]
         height = config["HEIGHT"]
 
         if not (0 <= entry[0] < width and 0 <= entry[1] < height):
-            raise ValueError("ENTRY coordinates must be within"
-                             " maze dimensions")
+            raise ValueError("ENTRY coordinates must "
+                             "be within maze dimensions")
 
-        if not (0 <= exit[0] < width and 0 <= exit[1] < height):
+        if not (0 <= exit_[0] < width and 0 <= exit_[1] < height):
             raise ValueError("EXIT coordinates must be within maze dimensions")
 
         return True
 
-    def parse(self) -> dict:
+    def parse(self) -> "MazeConfig":
         config = self.load_config()
         if config is None:
             exit(1)
@@ -138,13 +168,5 @@ class ConfigParser:
             exit(1)
 
 
-if __name__ == "__main__":
-    import sys
-
-    if len(sys.argv) != 2:
-        print("Usage: python3 config_parser.py <config_file>")
-        exit(1)
-
-    parser = ConfigParser(sys.argv[1])
-    config = parser.parse()
-    print(config)
+signal.signal(signal.SIGINT, handle_signal)
+signal.signal(signal.SIGTSTP, handle_signal)

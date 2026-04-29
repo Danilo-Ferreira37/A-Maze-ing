@@ -11,19 +11,20 @@ install:
 run: install
 	$(PY) a_maze_ing.py config.txt
 
-debug:
+debug: install
 	$(PY) -m pdb a_maze_ing.py config.txt
 
 clean:
 	find . -type d -name "__pycache__" -exec rm -rf {} +
 	find . -type d -name ".mypy_cache" -exec rm -rf {} +
 	find . -type f -name "*.pyc" -delete
+	rm -rf venv
 
-lint:
+lint: install
 	$(VENV)/bin/flake8 .
 	$(VENV)/bin/mypy . --warn-return-any --warn-unused-ignores --ignore-missing-imports --disallow-untyped-defs --check-untyped-defs
 
-lint-strict:
+lint-strict: install
 	$(VENV)/bin/flake8 .
 	$(VENV)/bin/mypy . --strict
 

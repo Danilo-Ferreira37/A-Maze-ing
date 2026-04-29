@@ -1,14 +1,55 @@
-*This project has been created as part of the 42 curriculum by dosorio-, rmendonca.*
+*This project has been created as part of the 42 curriculum by dosorio-, rmedonca.*
+
+![Python](https://img.shields.io/badge/Python-3.12-blue)
+![Build](https://img.shields.io/badge/Build-Makefile-orange)
+![Code Style](https://img.shields.io/badge/Code%20Style-Flake8-green)
+![Typing](https://img.shields.io/badge/Type%20Checking-MyPy-blueviolet)
+![Algorithms](https://img.shields.io/badge/Algorithms-DFS%20%7C%20BFS-yellow)
+![Status](https://img.shields.io/badge/Status-Completed-success)
+![42](https://img.shields.io/badge/School-42-black)
+![Language](https://img.shields.io/badge/Language-Python-blue)
 
 # Description
 
-This project implements a fully configurable **maze generator and solver**, capable of producing valid mazes based on a user‑defined configuration file. The program reads the configuration, validates all parameters, generates the maze, solves it, and outputs the result. The focus is on **procedural generation**, **clean modular design**, and **reusable components**.
+...
+
+---
+
+# Preview
+
+Example of generated maze:
+```
++---+---+---+
+| E   *   * |
++   +---+   +
+|   |     x |
++---+-------+
+```
+
+---
+
+This project implements a fully configurable **maze generator and solver**, capable of producing valid mazes based on a user-defined configuration file. The program reads the configuration, validates all parameters, generates the maze, solves it, and outputs the result.
+
+The focus is on **procedural generation**, **clean modular design**, and **reusable components**.
+
+---
+
+# Features
+
+- Configurable maze generation
+- Randomized maze generation
+- Shortest-path solving using BFS
+- ASCII terminal visualization
+- Output file containing solution directions
+
+---
 
 # Instructions
 
 ## Installation
 
-The project uses a **Python virtual environment** managed through a Makefile.  
+The project uses a **Python virtual environment** managed through a Makefile.
+
 To install all dependencies and prepare the environment, run:
 
 ```
@@ -18,7 +59,13 @@ make install
 This will:
 - Create a virtual environment (`venv/`) if it does not exist  
 - Upgrade `pip`  
-- Install development tools (`flake8`, `mypy`)  
+- Install development tools:
+  - `flake8`
+  - `mypy`
+
+> Note: The project has no external runtime dependencies.
+
+---
 
 ## Running the Program
 
@@ -36,7 +83,7 @@ python3 a_maze_ing.py config.txt
 
 ## Debug Mode
 
-To run the program using the Python debugger (pdb):
+To run the program using the Python debugger:
 
 ```
 make debug
@@ -71,23 +118,66 @@ make lint-strict
 
 # Config File Structure
 
-The configuration file must follow this exact structure:
+The configuration file must follow this format:
 
 ```
 WIDTH=<int>
 HEIGHT=<int>
-ENTRY=(x: int, y: int)
-EXIT=(x: int, y: int)
-OUTPUT_FILE="string.txt"
+ENTRY=x,y
+EXIT=x,y
+OUTPUT_FILE=string.txt
 PERFECT=bool
+```
+## Example
+
+```
+WIDTH=10
+HEIGHT=10
+ENTRY=0,0
+EXIT=9,9
+OUTPUT_FILE=output.txt
+PERFECT=True
 ```
 
 ### Field descriptions
-- **WIDTH / HEIGHT** — Maze dimensions  
-- **ENTRY** — Starting position  
-- **EXIT** — Ending position  
-- **OUTPUT_FILE** — File where the maze seed, solution path, and status will be saved  
-- **PERFECT** — Indicates whether the maze must be perfect (no loops)  
+
+- **WIDTH / HEIGHT** — Maze dimensions
+- **ENTRY** — Starting position
+- **EXIT** — Ending position
+- **OUTPUT_FILE** — File where the maze data is saved, including:
+  - Maze representation in hexadecimal
+  - Solution path (N, S, E, W)
+  - Entry coordinates
+  - Exit coordinates
+- **PERFECT** — If True, the maze has no cycles (only one unique path between any two points)
+
+---
+
+# Output Format
+
+The output file contains:
+
+- Maze representation in hexadecimal format  
+- Entry coordinates  
+- Exit coordinates  
+- Solution path as a sequence of directions  
+
+## Directions
+
+- N → North
+- S → South
+- E → East
+- W → West
+
+## Example
+
+```
+NSESEW
+```
+
+This represents the shortest path from ENTRY to EXIT.
+
+---
 
 # Maze Generation Algorithm
 
@@ -101,14 +191,16 @@ DFS Backtracking was chosen as the maze generation algorithm.
 - Choose a random unvisited neighbor  
 - Remove the wall between both cells  
 - Move to the neighbor and repeat  
-- When no neighbors remain, backtrack  
+- Backtrack when no neighbors remain
 
-### Why this algorithm
+### Why DFS
+
 - Simple and intuitive  
 - Produces long, interesting paths  
 - Low computational cost  
-- Great for visualization and teaching algorithmic concepts  
-- Flexible and easy to adapt  
+- Easy to implement and adapt  
+
+---
 
 # Maze Solving Algorithm
 
@@ -116,31 +208,96 @@ DFS Backtracking was chosen as the maze generation algorithm.
 
 BFS was used to solve the maze by finding the shortest possible path from the entry to the exit.
 
-### How BFS works in this project
-- BFS starts at the entry cell and places it in a queue  
-- It explores all reachable neighbors level by level  
-- Each visited cell stores its predecessor  
-- When the exit is reached, the algorithm reconstructs the shortest path  
-- BFS guarantees the optimal solution in terms of number of steps  
+### How it works
+
+- Starts from ENTRY  
+- Explores neighbors level by level  
+- Stores predecessors  
+- Stops when EXIT is found  
+- Reconstructs shortest path   
 
 ### Why BFS was chosen
-- Guarantees the shortest path  
-- Simple and efficient using a queue  
-- Works extremely well on grid‑based mazes  
+
+- Guarantees shortest path  
+- Efficient for grid-based problems  
+- Deterministic and reliable  
+
+---
+
+# Algorithm Complexity
+
+- DFS (Generation): **O(N)**  
+- BFS (Solving): **O(V + E)**  
+
+Both scale linearly with the number of cells.
+
+---
+
+# Project Structure
+
+```
+maze/
+    generator.py
+    solver.py
+
+parsing/
+    config_parser.py
+
+output/
+    display.py
+
+a_maze_ing.py
+Makefile
+config.txt
+```
+
+---
 
 # Reusable Code
 
-### Configuration Parser
-Reads key=value pairs, validates types and ranges, and can be reused in any project requiring simple configuration files.
+## mazegen
+- The entire Mazegenerator class with the nested SolveMaze class to resolve the Maze and the Cell class to represents a cell.
 
-### Grid Structure
-Generic 2D matrix representation with boundary checks and cell manipulation utilities. Useful for games, simulations, and pathfinding algorithms.
 
-### Randomization Module
-Handles seeded pseudo‑random generation to ensure reproducibility.
 
-### Logging System
-Provides debug, info, and error messages. Easily reusable in other Python projects.
+### How to reuse the code?
+- **Install the build if you hasn't installed with:**  
+pip install build  
+
+- **Then executes the build:**  
+python3 -m build
+
+- **The build will make two files:**   
+mazegen-1.0.0.tar.gz and mazegen-1.0.0-py3-none-any.whl
+
+- **To install the mazegen module enter:**  
+pip install mazegen-1.0.0-py3-none-any.whl
+
+- **And to extract(view) the module files enter:**  
+tar -xzf mazegen-1.0.0.tar.gz 
+
+# Testing
+
+The project was manually tested to ensure:
+- Invalid configurations  
+- Boundary conditions  
+- Different maze sizes  
+- Entry/Exit edge cases  
+
+Frameworks like `pytest` can be used but are not included.
+
+---
+
+# .gitignore
+
+The project includes a `.gitignore` file excluding:
+
+- `venv/`  
+- `__pycache__/`  
+- `*.pyc`  
+- `.mypy_cache/`  
+
+---
 
 # Team and Project Management
 
@@ -154,25 +311,29 @@ Provides debug, info, and error messages. Easily reusable in other Python projec
 - Documentation  
 - Output file generation (maze seed, shortest path, status)  
 
-### rmendonca
+### rmedonca
 **Roles:**
 - Configuration parser implementation  
 - Terminal display  
 - BFS algorithm implementation for maze solving  
 - Project organization and structure  
-- Flake8 compliance  
+- Flake8 compliance
+
+---
 
 # Resources
 
-## Classic references
-- Red Blob Games — Maze generation algorithms  
-- Articles on DFS, BFS, and backtracking  
+## References
 
-## Use of AI in the project
+- Red Blob Games — Maze generation algorithms  
+- DFS, BFS, and backtracking articles  
+
+## Use of AI
+
 AI was used strictly as an auxiliary tool for:
 - Improving technical explanations  
 - Generating documentation examples  
 - Suggesting modular organization  
 - Reviewing the README text  
 
-No code was generated automatically; all implementation was done manually.
+All code was written manually.
