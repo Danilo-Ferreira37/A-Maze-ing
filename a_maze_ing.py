@@ -1,6 +1,7 @@
 from parsing.config_parser import ConfigParser
 from mazegen import MazeGenerator, MazeConfig
-from output.display import Display_Maze
+from output.display import (Display_Maze, BRIGHT_GREEN,
+                            BRIGHT_YELLOW, BRIGHT_RED, RESET)
 import sys
 import os
 import random
@@ -29,7 +30,11 @@ def main(color: bool = False) -> None:
     show_hide = 2
     path = False
     while True:
-        print("╔═════════════════ Manual ══════════════════╗")
+        watermelon = f"{BRIGHT_RED}Watermelon{BRIGHT_GREEN}"
+        theme = ""
+        if color:
+            theme = BRIGHT_GREEN
+        print(f"{theme}╔═════════════════ Manual ══════════════════╗")
         print("1. Re-generate a new maze")
         print("2. Show/Hide path from entry to exit")
         print("3. Rotate maze colors")
@@ -41,14 +46,15 @@ def main(color: bool = False) -> None:
         print(f"  ==== Maze type: "
               f"{'Perfect Maze' if config['PERFECT'] else 'Imperfect Maze'}")
         print(f"  ==== Seed: {config['SEED']}")
-        print(f"  ==== Current Theme: {'Watermelon' if color else 'Normal'}")
+        print(f"  ==== Current Theme: {watermelon if color else 'Normal'}")
 
         print("╚═══════════════════════════════════════════╝")
         choice = input("Choice? (1-4): ")
         if choice not in ("1", "2", "3", "4"):
             os.system("clear")
             display.display(path, color)
-            print("\nError: Enter a number between 1 and 4!\n")
+            print(f"{BRIGHT_YELLOW}\nError: Enter a number "
+                  f"between 1 and 4!\n{RESET}")
 
         elif choice == "1":
             os.system("clear")

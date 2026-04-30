@@ -11,28 +11,11 @@
 
 # Description
 
-...
-
----
-
-# Preview
-
-Example of generated maze:
-```
-+---+---+---+
-| E   *   * |
-+   +---+   +
-|   |     x |
-+---+-------+
-```
-
 ---
 
 This project implements a fully configurable **maze generator and solver**, capable of producing valid mazes based on a user-defined configuration file. The program reads the configuration, validates all parameters, generates the maze, solves it, and outputs the result.
 
 The focus is on **procedural generation**, **clean modular design**, and **reusable components**.
-
----
 
 # Features
 
@@ -43,6 +26,16 @@ The focus is on **procedural generation**, **clean modular design**, and **reusa
 - Output file containing solution directions
 
 ---
+
+Example of generated maze:
+```
++---+---+---+
+| E   *   * |
++   +---+   +
+|   |     x |
++---+-------+
+```
+
 
 # Instructions
 
