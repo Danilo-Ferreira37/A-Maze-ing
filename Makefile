@@ -18,6 +18,12 @@ clean:
 	find . -type d -name "__pycache__" -exec rm -rf {} +
 	find . -type d -name ".mypy_cache" -exec rm -rf {} +
 	find . -type f -name "*.pyc" -delete
+	rm -rf mazegen-1.0.0.tar.gz
+	rm -rf mazegen-1.0.0-py3-none-any.whl
+	rm -rf output_maze.txt
+	rm -rf dist
+
+fclean: clean
 	rm -rf venv
 
 lint: install

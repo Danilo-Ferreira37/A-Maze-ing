@@ -1,5 +1,7 @@
 from parsing.config_parser import ConfigParser
-from mazegen import MazeGenerator, MazeConfig
+from mazegen import MazeGenerator, SolveMaze
+
+from parsing.model import MazeConfig
 from output.display import (Display_Maze, BRIGHT_GREEN,
                             BRIGHT_YELLOW, BRIGHT_RED, RESET)
 import sys
@@ -20,7 +22,7 @@ def main(color: bool = False) -> None:
         config["SEED"] = random.randrange(2**32)
 
     maze = MazeGenerator(config)
-    sv = MazeGenerator.SolveMaze(maze, config)
+    sv = SolveMaze(maze, config)
     display = Display_Maze(
         maze,
         sv.solve_maze,
