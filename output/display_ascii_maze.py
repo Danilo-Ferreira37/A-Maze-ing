@@ -1,6 +1,6 @@
 from collections.abc import Callable
 from mazegen import MazeGenerator
-
+from mazegen.cell import Cell
 
 RED = "\033[31m"
 GREEN = "\033[32m"
@@ -76,7 +76,7 @@ class Display_Maze:
             print(self.middle_line(row, path_coords, show_path, change_color))
         print(self.lower_line(self.maze.grid[-1], change_color))
 
-    def upper_line(self, row: list["MazeGenerator.Cell"],
+    def upper_line(self, row: list[Cell],
                    change_color: bool = False) -> str:
         if not change_color:
             line = f"{BRIGHT_WHITE}+{RESET}"
@@ -92,7 +92,7 @@ class Display_Maze:
                      else f"{BRIGHT_GREEN}   +{RESET}")
         return line
 
-    def middle_line(self, row: list["MazeGenerator.Cell"],
+    def middle_line(self, row: list[Cell],
                     path_coords: set[tuple[int, int]],
                     show_path: bool = False,
                     change_color: bool = False) -> str:
@@ -127,7 +127,7 @@ class Display_Maze:
         line += bar if row[-1].direction["E"] else " "
         return line
 
-    def lower_line(self, row: list["MazeGenerator.Cell"],
+    def lower_line(self, row: list[Cell],
                    change_color: bool = False) -> str:
         if not change_color:
             line = f"{BRIGHT_WHITE}+{RESET}"

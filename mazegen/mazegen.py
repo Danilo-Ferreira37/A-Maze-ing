@@ -61,9 +61,13 @@ Notes
 • The internal structure format does not need to match the output file format.
 """
 import random
+from typing import TYPE_CHECKING
 from .cell import Cell
 from parsing.model import MazeConfig
 
+
+if TYPE_CHECKING:
+    from . import SolveMaze
 
 
 class MazeGenerator:
@@ -81,8 +85,14 @@ class MazeGenerator:
 
         self.dfs_backtracing(self.entry[0], self.entry[1], perfect=True)
         self.output_hex()
-        # sv = self.SolveMaze(self, config)
-        #self.path = sv.solve_maze()
+        SolveMaze = self.get_class()
+        sv = SolveMaze(self, config)
+        self.path = sv.solve_maze()
+
+    @staticmethod
+    def get_class() -> type["SolveMaze"]:
+        from . import SolveMaze
+        return SolveMaze
 
     def close_cell(self, y: int, x: int) -> None:
         if self.grid[y][x].entry or self.grid[y][x].exit:
