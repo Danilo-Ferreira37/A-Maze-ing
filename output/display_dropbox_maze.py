@@ -1,30 +1,12 @@
 from collections.abc import Callable
-
 from mazegen import MazeGenerator
 from mazegen.cell import Cell
+from output.colors import *
 
-RESET = "\033[0m"
+CELL_WIDTH = 4
 
-# Temas: cores das paredes, entrada, saida, caminho e celulas fechadas
-THEMES: dict[str, dict[str, str]] = {
-    "default": {
-        "wall": "\033[97m",
-        "entry": "\033[32m",
-        "exit": "\033[31m",
-        "path": "\033[44m",
-        "closed": "\033[45m",
-    },
-    "alt": {
-        "wall": "\033[92m",
-        "entry": "\033[91m",
-        "exit": "\033[35m",
-        "path": "\033[101m",
-        "closed": "\033[103m",
-    },
-}
-
-# (up, down, left, right) -> caracter box-drawing
-JUNCTIONS: dict[tuple[bool, bool, bool, bool], str] = {
+# (cima, baixo, esquerda, direita) -> caracter box-drawing
+CORNERS: dict[tuple[bool, bool, bool, bool], str] = {
     (False, False, False, False): " ",
     (False, False, True, True): "─",
     (False, False, True, False): "╴",
@@ -44,9 +26,7 @@ JUNCTIONS: dict[tuple[bool, bool, bool, bool], str] = {
 }
 
 
-class DisplayMazeBox:
-    """Desenha o labirinto com caracteres box-drawing (┌ ─ ┐ │ └ ┘ ├ ┤ ┬ ┴ ┼)."""
-
+class DisplayMazeDropBox:
     def __init__(
         self,
         maze: MazeGenerator,
@@ -55,89 +35,146 @@ class DisplayMazeBox:
         self.maze = maze
         self.solver = solver
 
-    # ------------------------------------------------------------------ path
     def build_path_coords(self, directions: list[str]) -> set[tuple[int, int]]:
         x, y = self.maze.entry
         path: list[tuple[int, int]] = [(x, y)]
-        moves = {"N": (0, -1), "S": (0, 1), "E": (1, 0), "W": (-1, 0)}
+
         for d in directions:
-            dx, dy = moves[d]
-            x, y = x + dx, y + dy
+            if d == "N":
+                y -= 1
+            elif d == "S":
+                y += 1
+            elif d == "E":
+                x += 1
+            elif d == "W":
+                x -= 1
+
             path.append((x, y))
         return set(path)
 
-    # ----------------------------------------------------------------- walls
-    def _h_wall(self, vy: int, cx: int) -> bool:
-        """Parede horizontal na linha de vertices vy, acima/abaixo da coluna cx."""
-        grid = self.maze.grid
-        h = len(grid)
-        below = grid[vy][cx].direction["N"] if vy < h else False
-        above = grid[vy - 1][cx].direction["S"] if vy > 0 else False
-        return below or above
-
-    def _v_wall(self, cy: int, vx: int) -> bool:
-        """Parede vertical na coluna de vertices vx, ao lado da linha cy."""
-        row = self.maze.grid[cy]
-        w = len(row)
-        right = row[vx].direction["W"] if vx < w else False
-        left = row[vx - 1].direction["E"] if vx > 0 else False
-        return right or left
-
-    def _junction(self, vy: int, vx: int) -> str:
-        h = len(self.maze.grid)
-        w = len(self.maze.grid[0])
-        up = vy > 0 and self._v_wall(vy - 1, vx)
-        down = vy < h and self._v_wall(vy, vx)
-        left = vx > 0 and self._h_wall(vy, vx - 1)
-        right = vx < w and self._h_wall(vy, vx)
-        return JUNCTIONS[(up, down, left, right)]
-
-    # ----------------------------------------------------------------- lines
-    def horizontal_line(self, vy: int, theme: dict[str, str]) -> str:
-        w = len(self.maze.grid[0])
-        wall = theme["wall"]
-        line = ""
-        for vx in range(w + 1):
-            line += self._junction(vy, vx)
-            if vx < w:
-                line += "───" if self._h_wall(vy, vx) else "   "
-        return f"{wall}{line}{RESET}"
-
-    def cell_line(
-        self,
-        cy: int,
-        row: list[Cell],
-        path_coords: set[tuple[int, int]],
-        show_path: bool,
-        theme: dict[str, str],
-    ) -> str:
-        wall = f"{theme['wall']}│{RESET}"
-        line = ""
-        for cx, cell in enumerate(row):
-            line += wall if self._v_wall(cy, cx) else " "
-            if cell.entry:
-                body = f" {theme['entry']}E{RESET} "
-            elif cell.exit:
-                body = f" {theme['exit']}X{RESET} "
-            elif show_path and (cell.x, cell.y) in path_coords:
-                body = f"{theme['path']}   {RESET}"
-            elif cell.closed:
-                body = f"{theme['closed']}   {RESET}"
-            else:
-                body = "   "
-            line += body
-        line += wall if self._v_wall(cy, len(row)) else " "
-        return line
-
-    # --------------------------------------------------------------- display
     def display(self, show_path: bool = False,
                 change_color: bool = False) -> None:
-        theme = THEMES["alt" if change_color else "default"]
-        path_coords = (
-            self.build_path_coords(self.solver()) if show_path else set()
-        )
-        grid = self.maze.grid
-        for cy, row in enumerate(grid):
-            print(self.horizontal_line(cy, theme))
-            print(self.cell_line(cy, row, path_coords, show_path, theme))
-        print(self.horizontal_line(len(grid), theme))
+        directions = self.solver()
+        path_coords = self.build_path_coords(directions)
+
+        prev_row = None
+        for row in self.maze.grid:
+            print(self.upper_line(row, prev_row, change_color))
+            print(self.middle_line(row, path_coords, show_path, change_color))
+            prev_row = row
+        print(self.lower_line(self.maze.grid[-1], change_color))
+
+    def upper_line(self, row: list[Cell],
+                   prev_row: list[Cell] | None = None,
+                   change_color: bool = False) -> str:
+        """Linha de cima da linha atual (paredes N de cada celula).
+
+        A primeira linha usa ┌ ┬ ┐; as seguintes usam ├ ┼ ┤ (ou o que
+        corresponder as paredes verticais da linha de cima e da atual).
+        """
+        n = len(row)
+        wall = "─" * CELL_WIDTH
+        gap = " " * CELL_WIDTH
+        if not change_color:
+            line = ""
+            for i in range(n + 1):
+                left = i > 0 and row[i - 1].direction["N"]
+                right = i < n and row[i].direction["N"]
+                down = ((i > 0 and row[i - 1].direction["E"])
+                        or (i < n and row[i].direction["W"]))
+                up = False
+                if prev_row is not None:
+                    up = ((i > 0 and prev_row[i - 1].direction["E"])
+                          or (i < n and prev_row[i].direction["W"]))
+                line += f"{BRIGHT_WHITE}{CORNERS[(up, down, left, right)]}{RESET}"
+                if i < n:
+                    line += (f"{BRIGHT_WHITE}{wall}{RESET}"
+                             if row[i].direction["N"]
+                             else f"{BRIGHT_WHITE}{gap}{RESET}")
+            return line
+        line = ""
+        for i in range(n + 1):
+            left = i > 0 and row[i - 1].direction["N"]
+            right = i < n and row[i].direction["N"]
+            down = ((i > 0 and row[i - 1].direction["E"])
+                    or (i < n and row[i].direction["W"]))
+            up = False
+            if prev_row is not None:
+                up = ((i > 0 and prev_row[i - 1].direction["E"])
+                      or (i < n and prev_row[i].direction["W"]))
+            line += f"{BRIGHT_GREEN}{CORNERS[(up, down, left, right)]}{RESET}"
+            if i < n:
+                line += (f"{BRIGHT_GREEN}{wall}{RESET}"
+                         if row[i].direction["N"]
+                         else f"{BRIGHT_GREEN}{gap}{RESET}")
+        return line
+
+    def middle_line(self, row: list[Cell],
+                    path_coords: set[tuple[int, int]],
+                    show_path: bool = False,
+                    change_color: bool = False) -> str:
+
+        left_pad = (CELL_WIDTH - 1) // 2
+        right_pad = CELL_WIDTH - 1 - left_pad
+
+        entry = f"{GREEN}E{RESET}"
+        exit = f"{RED}X{RESET}"
+        path = f"{BLUE}■{RESET}"
+        cell_close = f"{MAGENTA}█{RESET}"
+        bar = f"{BRIGHT_WHITE}│{RESET}"
+        if change_color:
+            entry = f"{BRIGHT_RED}E{RESET}"
+            exit = f"{MAGENTA}X{RESET}"
+            path = f"{BRIGHT_RED}■{RESET}"
+            cell_close = f"{BRIGHT_YELLOW}█{RESET}"
+            bar = f"{BRIGHT_GREEN}│{RESET}"
+        line = ""
+        for cell in row:
+            line += bar if cell.direction["W"] else " "
+            if cell.entry:
+                body = " " * left_pad + entry + " " * right_pad
+            elif cell.exit:
+                body = " " * left_pad + exit + " " * right_pad
+            elif (cell.x, cell.y) in path_coords and show_path:
+                body = " " * left_pad + path + " " * right_pad
+            elif cell.closed:
+                body = cell_close * CELL_WIDTH
+            else:
+                body = " " * CELL_WIDTH
+
+            line += body
+
+        line += bar if row[-1].direction["E"] else " "
+        return line
+
+    def lower_line(self, row: list[Cell],
+                   change_color: bool = False) -> str:
+        """Ultima linha do labirinto (paredes S), terminando em └ ┴ ┘."""
+        n = len(row)
+        wall = "─" * CELL_WIDTH
+        gap = " " * CELL_WIDTH
+        if not change_color:
+            line = ""
+            for i in range(n + 1):
+                left = i > 0 and row[i - 1].direction["S"]
+                right = i < n and row[i].direction["S"]
+                up = ((i > 0 and row[i - 1].direction["E"])
+                      or (i < n and row[i].direction["W"]))
+                line += f"{BRIGHT_WHITE}{CORNERS[(up, False, left, right)]}{RESET}"
+                if i < n:
+                    line += (f"{BRIGHT_WHITE}{wall}{RESET}"
+                             if row[i].direction["S"]
+                             else f"{BRIGHT_WHITE}{gap}{RESET}")
+            return line
+        line = ""
+        for i in range(n + 1):
+            left = i > 0 and row[i - 1].direction["S"]
+            right = i < n and row[i].direction["S"]
+            up = ((i > 0 and row[i - 1].direction["E"])
+                  or (i < n and row[i].direction["W"]))
+            line += f"{BRIGHT_GREEN}{CORNERS[(up, False, left, right)]}{RESET}"
+            if i < n:
+                line += (f"{BRIGHT_GREEN}{wall}{RESET}"
+                         if row[i].direction["S"]
+                         else f"{BRIGHT_GREEN}{gap}{RESET}")
+        return line
