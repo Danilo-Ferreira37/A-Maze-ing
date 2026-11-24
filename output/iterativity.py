@@ -4,6 +4,8 @@ from parsing.model import MazeConfig
 import os
 from mazegen import MazeGenerator, SolveMaze
 from output.display_ascii_maze import Display_Maze
+from output.display_dropbox_maze import DisplayMazeBox
+
 import random
 
 
@@ -15,7 +17,7 @@ def create_maze(
         config["SEED"] = random.randrange(2**32)
     maze = MazeGenerator(config)
     sv = SolveMaze(maze, config)
-    display = Display_Maze(
+    display = DisplayMazeBox(
         maze,
         sv.solve_maze,
     )

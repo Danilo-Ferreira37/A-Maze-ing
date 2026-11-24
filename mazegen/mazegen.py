@@ -83,7 +83,7 @@ class MazeGenerator:
         self.grid_creator()
         self.fourty_two()
 
-        self.dfs_backtracing(self.entry[0], self.entry[1], perfect=True)
+        self.dfs_backtracing(self.entry[0], self.entry[1], perfect=self.perfect)
         self.output_hex()
         SolveMaze = self.get_class()
         sv = SolveMaze(self, config)
@@ -142,7 +142,7 @@ class MazeGenerator:
     def dfs_backtracing(self, x: int, y: int, perfect: bool = True) -> None:
         self.grid[y][x].visited = True
         directions = ["N", "E", "S", "W"]
-        probably = 0.04
+        probably = 0.05
         if self.height <= 15 and self.width <= 15:
             probably = 0.10
         try:
