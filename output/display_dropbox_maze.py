@@ -54,7 +54,7 @@ class DisplayMazeDropBox:
 
     def display(self, show_path: bool = False,
                 change_color: bool = False) -> None:
-        directions = self.solver()
+        directions = self.solver.solve_maze()
         path_coords = self.build_path_coords(directions)
 
         prev_row = None
@@ -116,7 +116,6 @@ class DisplayMazeDropBox:
 
         left_pad = (CELL_WIDTH - 1) // 2
         right_pad = CELL_WIDTH - 1 - left_pad
-
         entry = f"{GREEN}E{RESET}"
         exit = f"{RED}X{RESET}"
         path = f"{BLUE}■{RESET}"

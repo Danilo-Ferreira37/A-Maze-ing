@@ -1,6 +1,6 @@
 HEIGHT=15
 WIDTH=15
-ENTRY=1, 3
+ENTRY=0, 0
 EXIT=14, 13
 OUTPUT_FILE=output_maze.txt
 PERFECT=False

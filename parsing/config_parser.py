@@ -1,20 +1,9 @@
 from typing import cast, TYPE_CHECKING, Optional
-from types import FrameType
 import signal
-import sys
 
 
 if TYPE_CHECKING:
     from mazegen.mazegen import MazeConfig
-
-
-def handle_signal(sig: int, frame: Optional[FrameType]) -> None:
-    if sig == signal.SIGINT:
-        print("\nCtrl+C detected — User kill the program.")
-        sys.exit(1)
-    frame = frame
-    if sig == signal.SIGTSTP:
-        print("\nCtrl+Z detected — No permission to exit of the program.")
 
 
 class ConfigParser:
@@ -126,7 +115,7 @@ class ConfigParser:
                     raise ValueError("PERFECT must be True or False")
                 validated[key] = value == "True"  # bool
 
-        required = ["WIDTH", "HEIGHT", "ENTRY", "EXIT", "OUTPUT_FILE"]
+        required = ["WIDTH", "HEIGHT", "ENTRY", "EXIT", "OUTPUT_FILE", "PERFECT"]
         for key in required:
             if key not in validated:
                 raise KeyError(f"Missing required key: {key}")
@@ -166,7 +155,3 @@ class ConfigParser:
         except (KeyError, ValueError) as e:
             print(f"Configuration validation error: {e}")
             exit(1)
-
-
-signal.signal(signal.SIGINT, handle_signal)
-signal.signal(signal.SIGTSTP, handle_signal)

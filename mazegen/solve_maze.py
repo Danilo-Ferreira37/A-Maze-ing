@@ -45,8 +45,10 @@ class SolveMaze:
             current_position, path = queue.popleft()
             if current_position == exit:
                 return path
-            for direction, neighbor in self.get_neighbors(current_position,
-                                                          self.maze):
+            for direction, neighbor in self.get_neighbors(
+                current_position,
+                self.maze
+                ):
                 if neighbor not in visited:
                     visited.add(neighbor)
                     queue.append((neighbor, path + [direction]))

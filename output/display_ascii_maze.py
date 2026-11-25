@@ -3,7 +3,8 @@ from mazegen import MazeGenerator
 from mazegen.cell import Cell
 from output.colors import *
 
-class Display_Maze:
+
+class DisplayMazeAscii:
     def __init__(
         self,
         maze: MazeGenerator,
@@ -31,7 +32,7 @@ class Display_Maze:
 
     def display(self, show_path: bool = False,
                 change_color: bool = False) -> None:
-        directions = self.solver()
+        directions = self.solver.solve_maze()
         path_coords = self.build_path_coords(directions)
 
         for row in self.maze.grid:
@@ -41,18 +42,14 @@ class Display_Maze:
 
     def upper_line(self, row: list[Cell],
                    change_color: bool = False) -> str:
-        if not change_color:
-            line = f"{BRIGHT_WHITE}+{RESET}"
-            for cell in row:
-                line += (f"{BRIGHT_WHITE}---+{RESET}"
-                         if cell.direction["N"]
-                         else f"{BRIGHT_WHITE}   +{RESET}")
-            return line
-        line = f"{BRIGHT_GREEN}+{RESET}"
+        color = BRIGHT_WHITE
+        if change_color:
+            color = BRIGHT_GREEN
+        line = f"{color}+{RESET}"
         for cell in row:
-            line += (f"{BRIGHT_GREEN}---+{RESET}"
+            line += (f"{color}---+{RESET}"
                      if cell.direction["N"]
-                     else f"{BRIGHT_GREEN}   +{RESET}")
+                     else f"{color}   +{RESET}")
         return line
 
     def middle_line(self, row: list[Cell],
@@ -92,16 +89,12 @@ class Display_Maze:
 
     def lower_line(self, row: list[Cell],
                    change_color: bool = False) -> str:
-        if not change_color:
-            line = f"{BRIGHT_WHITE}+{RESET}"
-            for cell in row:
-                line += (f"{BRIGHT_WHITE}---+{RESET}"
-                         if cell.direction["S"]
-                         else f"{BRIGHT_WHITE}   +{RESET}")
-            return line
-        line = f"{BRIGHT_GREEN}+{RESET}"
+        color = BRIGHT_WHITE
+        if change_color:
+            color = BRIGHT_GREEN
+        line = f"{color}+{RESET}"
         for cell in row:
-            line += (f"{BRIGHT_GREEN}---+{RESET}"
+            line += (f"{color}---+{RESET}"
                      if cell.direction["S"]
-                     else f"{BRIGHT_GREEN}   +{RESET}")
+                     else f"{color}   +{RESET}")
         return line

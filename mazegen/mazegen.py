@@ -88,11 +88,20 @@ class MazeGenerator:
         SolveMaze = self.get_class()
         sv = SolveMaze(self, config)
         self.path = sv.solve_maze()
+        if not self.perfect:
+            self.ensure_imperfect()
 
-    @staticmethod
-    def get_class() -> type["SolveMaze"]:
-        from . import SolveMaze
-        return SolveMaze
+    def ensure_imperfect(self) -> None:
+        x, y = self.entry
+        entry_cell: Cell = self.grid[y][x]
+        directions = {"N": (x, y - 1),
+                      "E": (x + 1, y),
+                      "S": (x, y + 1),
+                      "W": (x - 1, y)}
+        for d in directions:
+            if entry_cell.direction[d] and not entry_cell.maze_limit[d]:
+                self.remove_wall(*self.entry, *directions[d])
+
 
     def close_cell(self, y: int, x: int) -> None:
         if self.grid[y][x].entry or self.grid[y][x].exit:
@@ -258,3 +267,8 @@ class MazeGenerator:
 
     def get_maze(self) -> list[list[Cell]]:
         return self.grid
+
+    @staticmethod
+    def get_class() -> type["SolveMaze"]:
+        from . import SolveMaze
+        return SolveMaze
