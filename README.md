@@ -1,4 +1,4 @@
-*This project has been created as part of the 42 curriculum by dosorio-, rmedonca.*
+*This project has been created as part of the 42 curriculum by dosorio-.*
 
 ![Python](https://img.shields.io/badge/Python-3.12-blue)
 ![Build](https://img.shields.io/badge/Build-Makefile-orange)
@@ -13,29 +13,56 @@
 
 ---
 
-This project implements a fully configurable **maze generator and solver**, capable of producing valid mazes based on a user-defined configuration file. The program reads the configuration, validates all parameters, generates the maze, solves it, and outputs the result.
+This project implements a fully configurable **maze generator and solver**, capable of producing valid mazes based on a user-defined configuration file. The program reads the configuration, validates all parameters, generates the maze, solves it, displays it in the terminal and writes the result to an output file.
+
+After the maze is displayed, an **interactive menu** lets the user regenerate the maze, show or hide the solution, change the colors and switch between two visual styles (Dropbox and ASCII).
 
 The focus is on **procedural generation**, **clean modular design**, and **reusable components**.
 
 # Features
 
-- Configurable maze generation
-- Randomized maze generation
+- Configurable maze generation (size, entry, exit, perfect / imperfect)
+- Randomized generation, with a **seed** that can be fixed to reproduce a maze
 - Shortest-path solving using BFS
-- ASCII terminal visualization
-- Output file containing solution directions
+- Two terminal rendering styles:
+  - **Dropbox** — box-drawing characters (`┌ ─ ┐ │ └ ┘ ├ ┤ ┬ ┴ ┼`)
+  - **ASCII** — plain characters (`+ - |`)
+- Colored terminal output with two themes (Normal and Watermelon)
+- Interactive menu to control the maze while the program runs
+- Output file containing the maze and the solution directions
 
 ---
 
-Example of generated maze:
+# Display Styles
+
+## Dropbox style
+
+Walls are drawn with box-drawing characters, and every cell is 4 characters wide.
+Blocked (closed) cells are filled with `█` and the solution path is drawn with `■`.
+
+```
+┌──────────────┐
+│ E    ■     ■ │
+│    ╶────┐    │
+│         │ X  │
+└─────────┴────┘
+```
+
+## ASCII style
+
+Walls are drawn with `+`, `-` and `|`. In the terminal, blocked cells and the solution path are drawn with a colored background (the path is shown as `*` below for illustration).
+
 ```
 +---+---+---+
 | E   *   * |
 +   +---+   +
-|   |     x |
-+---+-------+
+|       | X |
++---+---+---+
 ```
 
+Legend: `E` — entry, `X` — exit.
+
+---
 
 # Instructions
 
@@ -97,7 +124,7 @@ This deletes:
 
 ## Linting and Static Analysis
 
-To check code style and typing:
+To check code style (flake8) and typing (mypy):
 
 ```
 make lint
@@ -108,6 +135,27 @@ To run strict linting and typing rules:
 ```
 make lint-strict
 ```
+
+---
+
+# Interactive Menu
+
+After the maze is displayed, the program shows a menu and waits for a choice:
+
+| Option | Action |
+|--------|--------|
+| `1` | Re-generate a new maze (new random seed) |
+| `2` | Show / hide the path from entry to exit |
+| `3` | Rotate the maze colors (Normal / Watermelon) |
+| `4` | Switch the maze style (Dropbox / ASCII) |
+| `5` | Hide / show the info panel |
+| `6` | Quit |
+
+The info panel shows the maze height and width, the entry and exit coordinates, the maze type (perfect or imperfect), the seed, the current maze style and the current color theme.
+
+Any other input prints an error message and the maze is displayed again.
+
+---
 
 # Config File Structure
 
@@ -120,6 +168,7 @@ ENTRY=x,y
 EXIT=x,y
 OUTPUT_FILE=string.txt
 PERFECT=bool
+SEED=<int>        (optional)
 ```
 ## Example
 
@@ -143,6 +192,7 @@ PERFECT=True
   - Entry coordinates
   - Exit coordinates
 - **PERFECT** — If True, the maze has no cycles (only one unique path between any two points)
+- **SEED** — Optional. Seed of the random generator; using the same seed reproduces the same maze. If it is missing, a random seed is generated, and it is always shown in the info panel.
 
 ---
 
@@ -229,17 +279,22 @@ Both scale linearly with the number of cells.
 # Project Structure
 
 ```
-maze/
-    generator.py
-    solver.py
+mazegen/
+    mazegen.py              # MazeGenerator (DFS generation)
+    solve_maze.py           # SolveMaze (BFS solving, solution file)
+    cell.py                 # Cell (walls, entry, exit, closed)
 
 parsing/
-    config_parser.py
+    config_parser.py        # Reads and validates the config file
+    model.py                # MazeConfig definition
 
 output/
-    display.py
+    colors.py               # ANSI color constants
+    display_ascii_maze.py   # DisplayMazeAscii  (+ - |)
+    display_dropbox_maze.py # DisplayMazeDropBox (box-drawing characters)
+    iterativity.py          # Interactive menu and maze creation
 
-a_maze_ing.py
+a_maze_ing.py               # Program entry point
 Makefile
 config.txt
 ```
@@ -249,9 +304,17 @@ config.txt
 # Reusable Code
 
 ## mazegen
-- The entire Mazegenerator class with the nested SolveMaze class to resolve the Maze and the Cell class to represents a cell.
+- The `MazeGenerator` class, which generates the maze, the `SolveMaze` class, which solves it (and writes the solution), and the `Cell` class, which represents a cell.
 
+```python
+from mazegen import MazeGenerator, SolveMaze
 
+maze = MazeGenerator(config)
+solver = SolveMaze(maze, config)
+directions = solver.solve_maze()   # e.g. ["E", "E", "S"]
+```
+
+The display classes in `output/` are independent of the algorithms: both `DisplayMazeAscii` and `DisplayMazeDropBox` receive a `MazeGenerator` and a `SolveMaze`, so a new rendering style only needs a new class with the same `display(show_path, change_color)` method.
 
 ### How to reuse the code?
 - **Install the build if you hasn't installed with:**  
@@ -276,6 +339,7 @@ The project was manually tested to ensure:
 - Boundary conditions  
 - Different maze sizes  
 - Entry/Exit edge cases  
+- Both display styles and both color themes  
 
 Frameworks like `pytest` can be used but are not included.
 
@@ -290,29 +354,6 @@ The project includes a `.gitignore` file excluding:
 - `*.pyc`  
 - `.mypy_cache/`  
 
----
-
-# Team and Project Management
-
-## Team Members
-
-### dosorio-
-**Roles:**
-- DFS algorithm implementation  
-- Grid structure and cell manipulation  
-- Terminal visualization  
-- Documentation  
-- Output file generation (maze seed, shortest path, status)  
-
-### rmedonca
-**Roles:**
-- Configuration parser implementation  
-- Terminal display  
-- BFS algorithm implementation for maze solving  
-- Project organization and structure  
-- Flake8 compliance
-
----
 
 # Resources
 
