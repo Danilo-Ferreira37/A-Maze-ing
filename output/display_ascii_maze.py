@@ -1,14 +1,15 @@
-from collections.abc import Callable
-from mazegen import MazeGenerator
+from mazegen import MazeGenerator, SolveMaze
 from mazegen.cell import Cell
-from output.colors import *
+from output.colors import (BG_BLUE, BG_BRIGHT_RED, BG_BRIGHT_YELLOW,
+                           BG_MAGENTA, BRIGHT_GREEN, BRIGHT_RED,
+                           BRIGHT_WHITE, GREEN, MAGENTA, RED, RESET)
 
 
 class DisplayMazeAscii:
     def __init__(
         self,
         maze: MazeGenerator,
-        solver: Callable[[], list[str]],
+        solver: SolveMaze,
     ) -> None:
         self.maze = maze
         self.solver = solver

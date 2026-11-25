@@ -1,5 +1,4 @@
-from typing import cast, TYPE_CHECKING, Optional
-import signal
+from typing import cast, TYPE_CHECKING
 
 
 if TYPE_CHECKING:
@@ -115,7 +114,8 @@ class ConfigParser:
                     raise ValueError("PERFECT must be True or False")
                 validated[key] = value == "True"  # bool
 
-        required = ["WIDTH", "HEIGHT", "ENTRY", "EXIT", "OUTPUT_FILE", "PERFECT"]
+        required = ["WIDTH", "HEIGHT", "ENTRY",
+                    "EXIT", "OUTPUT_FILE", "PERFECT"]
         for key in required:
             if key not in validated:
                 raise KeyError(f"Missing required key: {key}")

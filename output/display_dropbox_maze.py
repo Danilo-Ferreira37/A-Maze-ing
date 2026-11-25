@@ -1,11 +1,11 @@
-from collections.abc import Callable
-from mazegen import MazeGenerator
+from mazegen import MazeGenerator, SolveMaze
 from mazegen.cell import Cell
-from output.colors import *
+from output.colors import (BLUE, BRIGHT_GREEN, BRIGHT_RED, BRIGHT_WHITE,
+                           BRIGHT_YELLOW, GREEN, MAGENTA, RED, RESET)
 
 CELL_WIDTH = 4
 
-# (cima, baixo, esquerda, direita) -> caracter box-drawing
+
 CORNERS: dict[tuple[bool, bool, bool, bool], str] = {
     (False, False, False, False): " ",
     (False, False, True, True): "─",
@@ -30,7 +30,7 @@ class DisplayMazeDropBox:
     def __init__(
         self,
         maze: MazeGenerator,
-        solver: Callable[[], list[str]],
+        solver: SolveMaze,
     ) -> None:
         self.maze = maze
         self.solver = solver
@@ -67,46 +67,28 @@ class DisplayMazeDropBox:
     def upper_line(self, row: list[Cell],
                    prev_row: list[Cell] | None = None,
                    change_color: bool = False) -> str:
-        """Linha de cima da linha atual (paredes N de cada celula).
-
-        A primeira linha usa ┌ ┬ ┐; as seguintes usam ├ ┼ ┤ (ou o que
-        corresponder as paredes verticais da linha de cima e da atual).
-        """
+        color = BRIGHT_WHITE
+        if change_color:
+            color = BRIGHT_GREEN
         n = len(row)
         wall = "─" * CELL_WIDTH
         gap = " " * CELL_WIDTH
-        if not change_color:
-            line = ""
-            for i in range(n + 1):
-                left = i > 0 and row[i - 1].direction["N"]
-                right = i < n and row[i].direction["N"]
-                down = ((i > 0 and row[i - 1].direction["E"])
-                        or (i < n and row[i].direction["W"]))
-                up = False
-                if prev_row is not None:
-                    up = ((i > 0 and prev_row[i - 1].direction["E"])
-                          or (i < n and prev_row[i].direction["W"]))
-                line += f"{BRIGHT_WHITE}{CORNERS[(up, down, left, right)]}{RESET}"
-                if i < n:
-                    line += (f"{BRIGHT_WHITE}{wall}{RESET}"
-                             if row[i].direction["N"]
-                             else f"{BRIGHT_WHITE}{gap}{RESET}")
-            return line
         line = ""
         for i in range(n + 1):
-            left = i > 0 and row[i - 1].direction["N"]
-            right = i < n and row[i].direction["N"]
-            down = ((i > 0 and row[i - 1].direction["E"])
-                    or (i < n and row[i].direction["W"]))
+            left = i > 0 and bool(row[i - 1].direction["N"])
+            right = i < n and bool(row[i].direction["N"])
+            down = ((i > 0 and bool(row[i - 1].direction["E"]))
+                    or (i < n and bool(row[i].direction["W"])))
             up = False
             if prev_row is not None:
-                up = ((i > 0 and prev_row[i - 1].direction["E"])
-                      or (i < n and prev_row[i].direction["W"]))
-            line += f"{BRIGHT_GREEN}{CORNERS[(up, down, left, right)]}{RESET}"
+                up = ((i > 0 and bool(prev_row[i - 1].direction["E"]))
+                      or (i < n and bool(prev_row[i].direction["W"])))
+            corner = CORNERS[(up, down, left, right)]
+            line += f"{color}{corner}{RESET}"
             if i < n:
-                line += (f"{BRIGHT_GREEN}{wall}{RESET}"
+                line += (f"{color}{wall}{RESET}"
                          if row[i].direction["N"]
-                         else f"{BRIGHT_GREEN}{gap}{RESET}")
+                         else f"{color}{gap}{RESET}")
         return line
 
     def middle_line(self, row: list[Cell],
@@ -148,32 +130,22 @@ class DisplayMazeDropBox:
 
     def lower_line(self, row: list[Cell],
                    change_color: bool = False) -> str:
-        """Ultima linha do labirinto (paredes S), terminando em └ ┴ ┘."""
+        color = BRIGHT_WHITE
+        if change_color:
+            color = BRIGHT_GREEN
         n = len(row)
         wall = "─" * CELL_WIDTH
         gap = " " * CELL_WIDTH
-        if not change_color:
-            line = ""
-            for i in range(n + 1):
-                left = i > 0 and row[i - 1].direction["S"]
-                right = i < n and row[i].direction["S"]
-                up = ((i > 0 and row[i - 1].direction["E"])
-                      or (i < n and row[i].direction["W"]))
-                line += f"{BRIGHT_WHITE}{CORNERS[(up, False, left, right)]}{RESET}"
-                if i < n:
-                    line += (f"{BRIGHT_WHITE}{wall}{RESET}"
-                             if row[i].direction["S"]
-                             else f"{BRIGHT_WHITE}{gap}{RESET}")
-            return line
         line = ""
         for i in range(n + 1):
-            left = i > 0 and row[i - 1].direction["S"]
-            right = i < n and row[i].direction["S"]
-            up = ((i > 0 and row[i - 1].direction["E"])
-                  or (i < n and row[i].direction["W"]))
-            line += f"{BRIGHT_GREEN}{CORNERS[(up, False, left, right)]}{RESET}"
+            left = i > 0 and bool(row[i - 1].direction["S"])
+            right = i < n and bool(row[i].direction["S"])
+            up = ((i > 0 and bool(row[i - 1].direction["E"]))
+                  or (i < n and bool(row[i].direction["W"])))
+            corner = CORNERS[(up, False, left, right)]
+            line += f"{color}{corner}{RESET}"
             if i < n:
-                line += (f"{BRIGHT_GREEN}{wall}{RESET}"
+                line += (f"{color}{wall}{RESET}"
                          if row[i].direction["S"]
-                         else f"{BRIGHT_GREEN}{gap}{RESET}")
+                         else f"{color}{gap}{RESET}")
         return line

@@ -83,7 +83,10 @@ class MazeGenerator:
         self.grid_creator()
         self.fourty_two()
 
-        self.dfs_backtracing(self.entry[0], self.entry[1], perfect=self.perfect)
+        self.dfs_backtracing(
+            self.entry[0],
+            self.entry[1],
+            perfect=self.perfect)
         self.output_hex()
         SolveMaze = self.get_class()
         sv = SolveMaze(self, config)
@@ -101,7 +104,6 @@ class MazeGenerator:
         for d in directions:
             if entry_cell.direction[d] and not entry_cell.maze_limit[d]:
                 self.remove_wall(*self.entry, *directions[d])
-
 
     def close_cell(self, y: int, x: int) -> None:
         if self.grid[y][x].entry or self.grid[y][x].exit:

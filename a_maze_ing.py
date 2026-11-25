@@ -6,6 +6,7 @@ import sys
 import os
 from output.colors import BRIGHT_BLUE, YELLOW, BRIGHT_RED
 
+
 def main() -> None:
     try:
         os.system("clear")

@@ -48,7 +48,7 @@ class SolveMaze:
             for direction, neighbor in self.get_neighbors(
                 current_position,
                 self.maze
-                ):
+            ):
                 if neighbor not in visited:
                     visited.add(neighbor)
                     queue.append((neighbor, path + [direction]))
